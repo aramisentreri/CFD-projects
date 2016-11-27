@@ -8,7 +8,7 @@ import time
 from collections import namedtuple
 
 sys.path.append(os.path.realpath("."))
-from firmware import Setup_TX, antenna_utils
+from firmware import basestation_connection, get_energy
 from algorithms import beam_sweep, sim_anneal, grad_desc
 
 Thresholds = namedtuple(\
@@ -157,18 +157,6 @@ def run_beam_optimization(energy_f, thresholds, prv_beam, debug = False, logfile
     return None, best_state, best_energy
 
 """
-Setting up, tearing down, and running the main loop...
-"""
-
-def main_setup():
-    tx = Setup_TX()
-    energy_f = antenna_utils.SPIEnergyFunc(tx)
-    return tx, energy_f
-
-def main_teardown():
-    tx.close()
-
-"""
 The main loop which ensures the phone is always either found or being searched for
 """
 def main_loop(energy_f, run_annealing = False, use_gradient_step = False, debug = False, logfile = sys.stdout):
@@ -242,13 +230,14 @@ if __name__ == "__main__":
     if "anneal" in args:
         should_anneal = True
 
-    tx, energy_f = main_setup()
-    try:
-        if should_log:
-            with open("run_main.log") as log_fh:
-                main_loop(energy_f,run_annealing = should_anneal,
-                          debug = True, logfile = log_fh)
-        else:
-            main_loop(energy_f, run_annealing = should_anneal, debug = True)
+    with basestation_connection() as bs_connect:
+        energy_f = get_energy(bs_connect)
+        try:
+            if should_log:
+                with open("run_main.log") as log_fh:
+                    main_loop(energy_f,run_annealing = should_anneal,
+                              debug = True, logfile = log_fh)
+            else:
+                main_loop(energy_f, run_annealing = should_anneal, debug = True)
     except KeyboardInterrupt:
         main_teardown()

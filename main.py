@@ -7,7 +7,7 @@ import time
 
 from collections import namedtuple
 
-sys.path.append(os.path.realpath("."))
+sys.path.append(os.path.realpath(".."))
 from firmware import basestation_connection, get_energy
 from algorithms import beam_sweep, sim_anneal, grad_desc
 
@@ -239,5 +239,5 @@ if __name__ == "__main__":
                               debug = True, logfile = log_fh)
             else:
                 main_loop(energy_f, run_annealing = should_anneal, debug = True)
-    except KeyboardInterrupt:
-        main_teardown()
+        except KeyboardInterrupt:
+            pass
